@@ -1,8 +1,8 @@
 package com.skycat.mystical.mixin;
 
 import com.skycat.mystical.Mystical;
-import com.skycat.mystical.common.spell.consequence.ExplosionsInfestConsequence;
-import com.skycat.mystical.common.util.Utils;
+import com.skycat.mystical.spell.consequence.ExplosionsInfestConsequence;
+import com.skycat.mystical.util.Utils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.InfestedBlock;
 import net.minecraft.util.math.BlockPos;
@@ -25,7 +25,7 @@ public abstract class ExplosionMixin {
     @Shadow @Final private World world;
 
     @Inject(method = "affectWorld", at = @At("HEAD"))
-    private void infestBlocks(boolean particles, CallbackInfo ci) {
+    private void mystical_infestBlocks(boolean particles, CallbackInfo ci) {
         if (!Mystical.isClientWorld() &&
                 Mystical.getSpellHandler().isConsequenceActive(ExplosionsInfestConsequence.class)) {
             ListIterator<BlockPos> it = getAffectedBlocks().listIterator();

@@ -1,13 +1,15 @@
 package com.skycat.mystical.test;
 
+import com.skycat.mystical.HavenManager;
 import com.skycat.mystical.Mystical;
-import com.skycat.mystical.common.LogLevel;
-import com.skycat.mystical.common.spell.Spells;
-import com.skycat.mystical.common.spell.consequence.ConsequenceFactory;
-import com.skycat.mystical.common.util.Utils;
-import com.skycat.mystical.server.HavenManager;
-import com.skycat.mystical.server.SaveState;
+import com.skycat.mystical.MysticalTags;
+import com.skycat.mystical.SaveState;
+import com.skycat.mystical.spell.Spells;
+import com.skycat.mystical.spell.consequence.ConsequenceFactory;
+import com.skycat.mystical.util.LogLevel;
+import com.skycat.mystical.util.Utils;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.test.*;
 
@@ -20,8 +22,9 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
 public class MysticalTests implements FabricGameTest {
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mystical.playerCanHaven")
     public void checkHavenWorks(TestContext context) {
+        TestUtils.resetMystical(context);
         HavenManager havenManager = Mystical.getHavenManager();
         ServerPlayerEntity player = Utils.createMockCreativeServerPlayerEntity(context);
         havenManager.setPower(player, Integer.MAX_VALUE);
@@ -31,8 +34,9 @@ public class MysticalTests implements FabricGameTest {
         context.complete();
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mystical.playerCantHaven")
     public void checkHavenFails(TestContext context) {
+        TestUtils.resetMystical(context);
         HavenManager havenManager = Mystical.getHavenManager();
         ServerPlayerEntity player = Utils.createMockCreativeServerPlayerEntity(context);
 
@@ -47,10 +51,10 @@ public class MysticalTests implements FabricGameTest {
         context.complete();
     }
 
-    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE, batchId = "mystical.checkHavenSerialization")
     public void checkHavenSerialization(TestContext context) {
         HavenManager havenManager = Mystical.getHavenManager();
-        havenManager.havenChunk(0, 0);
+        havenManager.addHaven(0, 0);
         context.getWorld().save(null, true, false);
         HavenManager newHavenManager = SaveState.loadSave(context.getWorld().getServer()).getHavenManager();
         context.assertTrue(newHavenManager.equals(havenManager), "Serialization comparison failed.");
@@ -66,7 +70,7 @@ public class MysticalTests implements FabricGameTest {
         FabricGameTest.super.invokeTestMethod(context, method);
     }
 
-    private static void getSpellTests(ArrayList<TestFunction> testFunctions) {
+    private static void addSpellTests(ArrayList<TestFunction> testFunctions) {
         for (ConsequenceFactory<?> factory : Spells.getConsequenceFactories()) {
             for (Method method : factory.getClass().getMethods()) {
                 GameTest testInfo = method.getAnnotation(GameTest.class);
@@ -101,20 +105,42 @@ public class MysticalTests implements FabricGameTest {
     @CustomTestProvider
     public Collection<TestFunction> getTestFunctions() {
         ArrayList<TestFunction> testFunctions = new ArrayList<>();
-        getSpellTests(testFunctions);
+        addSpellTests(testFunctions);
         testFunctions.sort(Comparator.comparing(TestFunction::getTemplateName));
         return testFunctions;
     }
 
-    @GameTest(templateName = TestUtils.EMPTY)
+    /**
+     * Verify that {@link TestUtils#havenAll(TestContext)} works as expected.
+     */
+    @GameTest(templateName = TestUtils.EMPTY, batchId = "mystical.havenAll")
     public void testHavenAll(TestContext context) {
         TestUtils.resetMystical(context);
         TestUtils.havenAll(context);
         HavenManager havenManager = Mystical.getHavenManager();
         context.forEachRelativePos((blockPos) -> {
             blockPos = context.getAbsolutePos(blockPos);
-            context.assertTrue(havenManager.isInHaven(blockPos), "Block pos " + blockPos + " was expected to be havened.");
+            if (!havenManager.isInHaven(blockPos)) {
+                throw new GameTestException("Block pos " + blockPos + " was expected to be havened.");
+            }
         });
+        context.complete();
+    }
+
+    /**
+     * Verify that a few tags are not empty in order to prevent <br>
+     * massive failure by publishing jars without generated data...<br>
+     * <br>
+     * ...again.
+     */
+    @SuppressWarnings("OptionalGetWithoutIsPresent") // Don't care, just fail please ty
+    @GameTest(templateName = FabricGameTest.EMPTY_STRUCTURE)
+    public static void testTags(TestContext context) { // TODO: Move this to MysticalTags if a good way can be found
+        var bosses = Registries.ENTITY_TYPE.getEntryList(MysticalTags.BOSSES).get();
+        bosses.get(0); // Throws IndexOutOfBoundsException if empty.
+
+        var terracotta = Registries.BLOCK.getEntryList(MysticalTags.GLAZED_TERRACOTTA).get();
+        terracotta.get(0); // Throws IndexOutOfBoundsException if empty.
         context.complete();
     }
 }

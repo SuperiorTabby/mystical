@@ -1,6 +1,6 @@
 package com.skycat.mystical.datagen;
 
-import com.skycat.mystical.Mystical;
+import com.skycat.mystical.MysticalTags;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.entity.EntityType;
@@ -17,30 +17,40 @@ public class EntityTypeTagProvider extends FabricTagProvider.EntityTypeTagProvid
 
     @Override
     protected void configure(RegistryWrapper.WrapperLookup arg) {
-        getOrCreateTagBuilder(Mystical.BOSSES)
+        getOrCreateTagBuilder(MysticalTags.BOSSES)
                 .add(EntityType.ENDER_DRAGON)
                 .add(EntityType.WITHER)
                 .add(EntityType.WARDEN)
                 .add(EntityType.ELDER_GUARDIAN)
                 .addOptionalTag(new Identifier("c:bosses"));
-        getOrCreateTagBuilder(Mystical.ZOMBIE_VARIANTS)
+        getOrCreateTagBuilder(MysticalTags.ZOMBIE_VARIANTS)
                 .add(EntityType.ZOMBIE)
                 .add(EntityType.HUSK)
                 .add(EntityType.ZOMBIE_VILLAGER)
                 .add(EntityType.ZOMBIFIED_PIGLIN)
                 .add(EntityType.DROWNED);
-        getOrCreateTagBuilder(Mystical.SKELETON_VARIANTS)
+        getOrCreateTagBuilder(MysticalTags.SKELETON_VARIANTS)
                 .add(EntityType.SKELETON)
                 .add(EntityType.WITHER_SKELETON)
                 .add(EntityType.STRAY);
-        getOrCreateTagBuilder(Mystical.ENDERMAN_VARIANTS)
+        getOrCreateTagBuilder(MysticalTags.ENDERMAN_VARIANTS)
                 .add(EntityType.ENDERMAN)
                 .add(EntityType.ENDERMITE);
-        getOrCreateTagBuilder(Mystical.EVOKER_SUMMONABLE)
+        getOrCreateTagBuilder(MysticalTags.EVOKER_SUMMONABLE)
                 .add(EntityType.VEX)
                 .add(EntityType.SILVERFISH)
                 .add(EntityType.ENDERMITE)
                 .add(EntityType.FOX)
                 .add(EntityType.PARROT);
+        getOrCreateTagBuilder(MysticalTags.RANDOM_EGG_SPAWNABLE)
+                .add(EntityType.FOX)
+                .add(EntityType.PARROT)
+                .add(EntityType.FROG)
+                .add(EntityType.BEE)
+                .add(EntityType.COD)
+                .add(EntityType.BAT)
+                .add(EntityType.RABBIT)
+                .add(EntityType.SILVERFISH)
+                .add(EntityType.ENDERMITE);
     }
 }

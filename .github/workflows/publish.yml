@@ -5,13 +5,14 @@ on:
       - closed
     branches:
       - master
+      - 1_20_1
   workflow_dispatch:
 
 env:
-  MINECRAFT_VERSION: 1.20.3
+  MINECRAFT_VERSION: 1.20.1
   JAVA_VERSION: 17
-  VERSION: 5.0.0+1.20.3
-  VERSION_TYPE: alpha
+  VERSION: 5.2.1+1.20.1
+  VERSION_TYPE: release
 
 permissions:
   contents: write
@@ -45,11 +46,24 @@ jobs:
       - name: Copy Datagen
         run: mkdir -p src/main/generated/data/mystical/ && cp -r src/main/generated/assets/mystical/lang src/main/generated/data/mystical/
 
-      - name: Game Test
-        run: mkdir build/gametest && echo "eula=true" >> build/gametest/eula.txt && ./gradlew runGameTest # ty modmuss
+      - name: Upload Generated Data
+        uses: actions/upload-artifact@v4
+        with:
+          name: GeneratedData
+          path: src/main/generated/
+          overwrite: true
 
       - name: Build
-        run: ./gradlew clean build
+        run: ./gradlew build
+
+      - name: Upload JAR Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: JARs
+          path: build/libs/*
+
+      - name: Game Test
+        run: mkdir build/gametest && echo "eula=true" >> build/gametest/eula.txt && ./gradlew runGameTest # ty modmuss
 
       - name: Publish
         uses: Kir-Antipov/mc-publish@v3.3

@@ -3,9 +3,10 @@ package com.skycat.mystical.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.skycat.mystical.Mystical;
-import com.skycat.mystical.common.LogLevel;
-import com.skycat.mystical.common.spell.consequence.RandomEvokerSummonsConsequence;
-import com.skycat.mystical.common.util.Utils;
+import com.skycat.mystical.MysticalTags;
+import com.skycat.mystical.util.LogLevel;
+import com.skycat.mystical.spell.consequence.RandomEvokerSummonsConsequence;
+import com.skycat.mystical.util.Utils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.VexEntity;
@@ -21,15 +22,15 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(targets = "net.minecraft.entity.mob.EvokerEntity$SummonVexGoal")
 public abstract class SummonVexGoalMixin {
     @Unique BlockPos spawningPos;
-
     @ModifyVariable(method = "castSpell", at = @At("STORE"), ordinal = 0)
-    public BlockPos grabSpawnLocation(BlockPos pos) {
+    public BlockPos mystical_grabSpawnLocation(BlockPos pos) {
         spawningPos = pos;
         return pos;
     }
 
+    @SuppressWarnings("rawtypes")
     @WrapOperation(method = "castSpell", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/EntityType;create(Lnet/minecraft/world/World;)Lnet/minecraft/entity/Entity;"))
-    public Entity overrideVexSpawning(EntityType instance, World world, Operation<VexEntity> original) { // TODO: Make things not spawn in walls
+    public Entity mystical_overrideVexSpawning(EntityType instance, World world, Operation<VexEntity> original) { // TODO: Make things not spawn in walls
         if (Mystical.isClientWorld() || // world.isClient() ||
                 Mystical.getHavenManager().isInHaven(spawningPos) ||
                 spawningPos == null ||
@@ -38,7 +39,7 @@ public abstract class SummonVexGoalMixin {
             return original.call(instance, world);
         }
         ServerWorld serverWorld = (ServerWorld) world;
-        EntityType<?> mobType = Utils.getRandomEntryFromTag(Registries.ENTITY_TYPE, Mystical.EVOKER_SUMMONABLE);
+        EntityType<?> mobType = Utils.getRandomEntryFromTag(Registries.ENTITY_TYPE, MysticalTags.EVOKER_SUMMONABLE);
         if (mobType == null) {
             Utils.log("Warning: Could not choose random mobType in SummonVexGoalMixin. Consider checking mystical:evoker_summonable tag.", LogLevel.WARN);
             return original.call(instance, world); // Let it run normally

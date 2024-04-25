@@ -10,5 +10,6 @@ public class DataGenerator implements DataGeneratorEntrypoint {
         pack.addProvider(EnglishLangProvider::new);
         pack.addProvider(EntityTypeTagProvider::new);
         pack.addProvider(BlockTagProvider::new);
+        pack.addProvider(AdvancementProvider::new);
     }
 }

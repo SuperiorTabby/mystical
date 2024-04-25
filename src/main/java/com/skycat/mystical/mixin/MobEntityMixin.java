@@ -1,8 +1,8 @@
 package com.skycat.mystical.mixin;
 
 import com.skycat.mystical.Mystical;
-import com.skycat.mystical.common.spell.consequence.DisableDaylightBurningConsequence;
-import com.skycat.mystical.common.util.Utils;
+import com.skycat.mystical.spell.consequence.DisableDaylightBurningConsequence;
+import com.skycat.mystical.util.Utils;
 import net.minecraft.entity.ai.goal.GoalSelector;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.world.entity.EntityLike;
@@ -18,7 +18,7 @@ public abstract class MobEntityMixin implements EntityLike {
     @Shadow @Final protected GoalSelector targetSelector;
 
     @Inject(method = "isAffectedByDaylight", at = @At("HEAD"), cancellable = true)
-    private void cancelDaylightEffects(CallbackInfoReturnable<Boolean> cir) {
+    private void mystical_cancelDaylightEffects(CallbackInfoReturnable<Boolean> cir) {
         if (!Mystical.isClientWorld() &&
                 Mystical.getSpellHandler().isConsequenceActive(DisableDaylightBurningConsequence.class) &&
                 !Mystical.getHavenManager().isInHaven(getBlockPos())) {

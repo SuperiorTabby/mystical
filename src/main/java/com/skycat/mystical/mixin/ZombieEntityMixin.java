@@ -1,8 +1,9 @@
 package com.skycat.mystical.mixin;
 
 import com.skycat.mystical.Mystical;
-import com.skycat.mystical.common.spell.consequence.ZombieTypeChangeConsequence;
-import com.skycat.mystical.common.util.Utils;
+import com.skycat.mystical.MysticalTags;
+import com.skycat.mystical.spell.consequence.ZombieTypeChangeConsequence;
+import com.skycat.mystical.util.Utils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
@@ -14,9 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ZombieEntity.class)
 public abstract class ZombieEntityMixin { // TODO: move to LivingEntityMixin
-
     @Inject(method = "damage", at = @At("RETURN"))
-    public void onDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    public void mystical_onDamage(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         ZombieEntity dis = (ZombieEntity) (Object) this;
         // If the spell is not active, the damage didn't go through, or we roll too low, don't do anything
         if (Mystical.isClientWorld() ||
@@ -28,12 +28,10 @@ public abstract class ZombieEntityMixin { // TODO: move to LivingEntityMixin
         }
         float totalDamage = dis.getMaxHealth() - dis.getHealth();
         if (!source.isOf(DamageTypes.OUT_OF_WORLD) && !dis.isDead()) {
-            Entity newEntity = Utils.convertToRandomInTag(dis, Mystical.ZOMBIE_VARIANTS);
+            Entity newEntity = Utils.convertToRandomInTag(dis, MysticalTags.ZOMBIE_VARIANTS);
             if (newEntity == null) return;
             Utils.log(Utils.translateString("text.mystical.consequence.zombieTypeChange.fired"), Mystical.CONFIG.zombieTypeChange.logLevel());
-            newEntity.damage(dis.getWorld().getDamageSources().outOfWorld(), totalDamage);
+            newEntity.damage(dis.getDamageSources().outOfWorld(), totalDamage);
         }
     }
-
-
 }

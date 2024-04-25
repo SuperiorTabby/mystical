@@ -1,7 +1,7 @@
 package com.skycat.mystical.datagen;
 
-import com.skycat.mystical.common.spell.Spells;
-import com.skycat.mystical.common.spell.consequence.ConsequenceFactory;
+import com.skycat.mystical.spell.Spells;
+import com.skycat.mystical.spell.consequence.ConsequenceFactory;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
 
@@ -26,6 +26,8 @@ class EnglishLangProvider extends FabricLanguageProvider {
         addConfigOptionTooltip(tb, "spellDecay", "How much spells will decay each night.");
         addConfigOption(tb, "spellDecayLinear", "Decay spells linearly?");
         addConfigOptionTooltip(tb, "spellDecayLinear", "If true, spells will decay based on the full requirement of the spell.\nIf false, they will decay based on what's left.");
+        addConfigOption(tb, "baseHavenCost", "Haven cost");
+        addConfigOptionTooltip(tb, "baseHavenCost", "The amount of power required to haven a chunk.");
 
         addConfigSection(tb, "Logging");
         addLoggingOption(tb, "newSpellCommand", "New spell created using command", "New spell command (console)");
@@ -38,13 +40,6 @@ class EnglishLangProvider extends FabricLanguageProvider {
         addLoggingOption(tb, "spellContribution", "Spell contribution by %s. Amount: %d.", "Spell contribution");
         addLoggingOption(tb, "timeOfDayAtStartup", "Time of day at startup: %l.", "Time of day at startup");
 
-        addCommandText(tb, "mystical.spell.delete.noSpells", "There are no active spells.");
-        addCommandText(tb, "mystical.spell.new.success", "Successfully created new %s spell.");
-        addCommandText(tb, "mystical.reload.success", "Successfully reloaded config and set night timer.");
-        addCommandText(tb, "mystical.spell.list.noSpells", "There are no active spells.");
-        addCommandText(tb, "mystical.spell.new.spell.warnDisabled", "Warning: Randomly generating this spell is disabled, or its weight is zero.");
-        addCommandText(tb, "mystical.spell.delete.deleteButton", " [X]");
-
         addConfigSection(tb, "Spells");
         // Config + spells
         for (ConsequenceFactory<?> factory : Spells.getShortNameToFactory().values()) {
@@ -53,10 +48,12 @@ class EnglishLangProvider extends FabricLanguageProvider {
         addConfigOption(tb, "bigCreeperExplosion.multiplier", "Multiplier");
         addConfigOption(tb, "fishingRodLaunch.multiplier", "Multiplier");
         addConfigOption(tb, "turboChickens.speed", "Speed multiplier");
-        addConfigOptionTooltip(tb, "turboChickens.speed", "Actually this is a speed divisor. The egg-laying cooldown will be divided by this.\nAccepts positive, nonzero numbers.");
+        addConfigOptionTooltip(tb, "turboChickens.speed", "Actually this is a duration divisor. The egg-laying cooldown will be divided by this.\nAccepts positive, nonzero numbers.");
         addConfigOption(tb, "randomCreeperEffectClouds.effectDuration", "Effect duration (s)");
         addConfigOption(tb, "randomCreeperEffectClouds.effectAmplifier", "Effect amplifier");
         addConfigOptionTooltip(tb, "randomCreeperEffectClouds.effectAmplifier", "0 = level one, just like the /effect command");
+        addConfigOption(tb, "soundSwap.numberOfSwaps", "Number of swaps");
+        addConfigOptionTooltip(tb, "soundSwap.numberOfSwaps", "Not all swaps will be heard (like rare sounds) or even take effect (for example block sounds don't work).\nThat's why this is so big by default.\nAccepts positive, nonzero integers.");
 
         // Config enums
         addConfig(tb, "enum.logLevel.debug", "Debug");
@@ -67,17 +64,89 @@ class EnglishLangProvider extends FabricLanguageProvider {
 
         // Additional spells
         addConsequenceTranslation(tb, "unbreakableLocation", "noBreaking", "A mystical force prevents you from breaking that block.");
+        addConsequenceTranslation(tb, "turboMobs", "failedGetRandomEntityType", "Failed to get a random entity type, using zombie instead.");
+
+        // Commands
+        addCommandText(tb, "mystical.help", "Mystical is a mod about spells cast by otherworldly beings. To learn more, click on one of the following commands (any path will teach you what you need to know):\n%s\n%s\n%s");
+
+        addCommandText(tb, "mystical.credits", """
+                ---
+                CREDITS:
+                skycatminepokie - Author
+                SuperiorTabby - Code & texture contributor
+                Phaserock - Texture contributor
+                Implement - Texture contributor
+                Members of the Fabric Discord - Lots of programming help, and too many people to name. Thank you guys!
+                modmuss, player50, and the rest of the Fabric team - Fabric
+                Patbox @ Nucleoid - Server Translations API
+                Lucko - Permissions API""");
+
+        addCommandText(tb, "mystical.spell.help", """
+                ---
+                Spells are cast by otherworldly beings, changing the world in strange ways.
+                Sometimes, spells are beneficial. Sometimes, they are not.
+                See the currently active spells with %s. Hover over them to discover the cure.
+                To learn more about curing spells, use %s.
+                If you have the mod installed, you can look at the effect HUD to see active spells.""");
+        addCommandText(tb, "mystical.spell.delete.noSpells", "There are no active spells.");
+        addCommandText(tb, "mystical.spell.new.success", "Successfully created new %s spell.");
+        addCommandText(tb, "mystical.reload.success", "Successfully reloaded config and set night timer.");
+        addCommandText(tb, "mystical.spell.list.noSpells", "There are no active spells.");
+        addCommandText(tb, "mystical.spell.new.spell.warnDisabled", "Warning: Randomly generating this spell is disabled, or its weight is zero.");
+        addCommandText(tb, "mystical.spell.delete.deleteButton", " [X]");
+        addCommandText(tb, "mystical.spell.delete.success", "Deleted %d spells.");
+
+        addCommandText(tb, "mystical.power.help", """
+                ---
+                Power can be used to haven chunks, protecting them from the influence of spells.
+                Gain power by contributing to curing a spell (see %s for more info).
+                Spend it on havens (see %s for more info).""");
+        addCommandText(tb, "mystical.power.add.player.amount.success", "Successfully added %d power to %d player(s).");
+        addCommandText(tb, "mystical.power.remove.player.amount.success", "Successfully removed %d power from %d player(s).");
+        addCommandText(tb, "mystical.power.get.player", "%s has %d power.");
+
+        addCommandText(tb, "mystical.haven.help", """
+                ---
+                A haven is a place of safety from spells.
+                You can create a chunk-wide haven with power by using %s.
+                To learn more about power, see %s
+                To learn more about spells, see %s""");
+        addCommandText(tb, "mystical.haven.info.inHaven", "This is in a haven.");
+        addCommandText(tb, "mystical.haven.info.notInHaven", "This chunk is not havened.");
+        addCommandText(tb, "mystical.haven.pos.action", "Havening chunk at [%d, %d] for %d power.");
+        addCommandText(tb, "mystical.haven.pos.button", " [Confirm]");
+        addCommandText(tb, "mystical.haven.pos.confirm.notEnoughPower", "You tried as hard as you could, but you couldn't haven the area. Do you have enough power?");
+
+        addCommandText(tb, "generic.success", "Success!");
+
+        addCommandText(tb, "generic.notAPlayer", "This command must be run by a player.");
+        addCommandText(tb, "generic.notAPlayer.solution", "This command must be run by a player. Try %s.");
+        addCommandText(tb, "generic.alreadyHavened", "This chunk is already havened.");
+        addCommandText(tb, "generic.notAnEntity", "This must be called by an entity.");
+        addCommandText(tb, "generic.clickToRunTheCommand", "Click to run the command!");
+
+        // Advancements
+        addAdvancementTranslation(tb, AdvancementProvider.CURE_SPELL_ADVANCEMENT_ID, "Mystical", "Not everything is as it seems...");
+        addAdvancementTranslation(tb, AdvancementProvider.MAKE_HAVEN_ADVANCEMENT_ID, "An Invisible Fortress", "Ward a chunk from unknown forces");
+        addAdvancementTranslation(tb, AdvancementProvider.SOLO_SPELL_ADVANCEMENT_ID, "Flying Solo", "Cure a spell all on your own");
+        addAdvancementTranslation(tb, AdvancementProvider.DOUBLE_CURE_ADVANCEMENT_ID, "Shoot the Moon", "Cure a spell a little too much");
+        addAdvancementTranslation(tb, AdvancementProvider.PREVENTED_BREAKING_ADVANCEMENT_ID, "No Trespassing", "Be magically blocked from mining");
+        addAdvancementTranslation(tb, AdvancementProvider.PREVENTED_BREAKING_ANCIENT_DEBRIS_ADVANCEMENT_ID, "Hidden in the Depths of Despair", "Be magically prevented from mining Ancient Debris");
+        addAdvancementTranslation(tb, AdvancementProvider.PREVENTED_BREAKING_DIAMOND_ORE_ADVANCEMENT_ID, "Worse than Glow Lichen", "Find diamonds, only to be unable to mine them");
 
         // Other
-        tb.add("text.mystical.events.spellsChange", "The world shifts...");
-        tb.add("text.mystical.events.cureSpell", "1 spell was cured this night.");
-        tb.add("text.mystical.events.cureSpells", "%d spells were cured this night.");
-        tb.add("text.mystical.events.newSpell", "1 new spell fell over the world.");
-        tb.add("text.mystical.events.newSpells", "%d new spells fell over the world.");
-        addTextTranslation(tb, "classSerializer.failedDeserializeName", "Couldn't deserialize class of name %s.");
+        addTextTranslation(tb, "events.spellsChange", "The world shifts...");
+        addTextTranslation(tb, "events.cureSpell", "1 spell was cured this night.");
+        addTextTranslation(tb, "events.cureSpells", "%d spells were cured this night.");
+        addTextTranslation(tb, "events.newSpell", "1 new spell fell over the world.");
+        addTextTranslation(tb, "events.newSpells", "%d new spells fell over the world.");
         addTextTranslation(tb, "spellGenerator.emptyConsequenceList", "SpellGenerator found an empty consequence supplier list. Using default consequence.");
-        addTextTranslation(tb, "text.mystical.spellGenerator.emptyCureList", "SpellGenerator found an empty cure list. Using default cure.");
+        addTextTranslation(tb, "spellGenerator.allConsequencesDisabled", "All spells are disabled, skipping making a spell");
+        addTextTranslation(tb, "spellGenerator.emptyCureList", "SpellGenerator found an empty cure list. Using default cure.");
         addTextTranslation(tb, "cure.kill", "Kill %ss");
+        addTextTranslation(tb, "client.networkHandler.spellPacket.null", "Nbt from active spell packet was null. Skipping.");
+        addTextTranslation(tb, "client.networkHandler.spellPacket.failedDeserialize", "Spells from active spell packet could not be deserialized. Skipping.");
+        addTextTranslation(tb, "consequence.mysteryEggs.failedSpawn", "Unable to spawn a random egg mob.");
     }
 
     private void addConfig(TranslationBuilder tb, String key, String value) {
@@ -136,7 +205,7 @@ class EnglishLangProvider extends FabricLanguageProvider {
     }
 
     /**
-     * Adds translation for logging options. Prepends `"text.mystical.logging"` and adds a config option.
+     * Adds translation for logging options. Prepends "{@code text.mystical.logging}" and adds a config option.
      * @param tb      The TranslationBuilder to use.
      * @param key     The key under the logging section.
      * @param console The translation for console output.
@@ -148,16 +217,26 @@ class EnglishLangProvider extends FabricLanguageProvider {
     }
 
     /**
-     * Add command translation. Prepends `"text.mystical.command."`.
+     * Add command translation. Prepends "{@code text.mystical.command.}".
      */
     private void addCommandText(TranslationBuilder tb, String key, String value) {
         tb.add("text.mystical.command." + key, value);
     }
 
     /**
-     * Add text translations. Prepends `"text.mystical."`.
+     * Add text translations. Prepends "{@code text.mystical.}".
      */
     private void addTextTranslation(TranslationBuilder tb, String key, String value) {
         tb.add("text.mystical." + key, value);
+    }
+
+    private void addAdvancementTranslation(TranslationBuilder tb, String advancementKey, String title, String description) {
+        String key = getKeyForAdvancementTranslation(advancementKey);
+        tb.add(key + ".title", title);
+        tb.add(key + ".description", description);
+    }
+
+    public static String getKeyForAdvancementTranslation(String advancementKey) {
+        return "text.mystical.advancement." + advancementKey.substring(advancementKey.indexOf(':') + 1).replace('/', '.'); // Trim off "mystical:" and replace "/" with "."
     }
 }

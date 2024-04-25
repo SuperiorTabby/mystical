@@ -1,6 +1,6 @@
 package com.skycat.mystical.mixin;
 
-import com.skycat.mystical.event.CatEntityEvents;
+import com.skycat.mystical.util.event.CatEntityEvents;
 import net.minecraft.entity.passive.CatEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -16,7 +16,7 @@ public abstract class CatEntityMixin {
      * Fire the {@link CatEntityEvents.Eat} event.
      */
     @Inject(method = "eat", at = @At("HEAD"))
-    public void eat(PlayerEntity entity, Hand hand, ItemStack stack, CallbackInfo ci) {
+    public void mystical_eat(PlayerEntity entity, Hand hand, ItemStack stack, CallbackInfo ci) {
         CatEntityEvents.EAT.invoker().onEat((CatEntity) (Object) this, entity, hand, stack);
     }
 }
